@@ -44,6 +44,12 @@ impl Add for Vec3 {
     }
 }
 
+impl std::iter::Sum for Vec3 {
+    fn sum<I: Iterator<Item = Vec3>>(iter: I) -> Vec3 {
+        iter.fold(ORIGINE, |acc, v| acc + v)
+    }
+}
+
 impl Sub for Vec3 {
     type Output = Vec3;
 
@@ -102,5 +108,15 @@ mod tests {
         assert_eq!(v.reflechi(n), res);
         let bas = Vec3::new(0., -1., 0.);
         assert_eq!(bas.reflechi(n), n);
+    }
+
+    #[test]
+    fn sum() {
+        let v = Vec3::new(1., -1., 0.);
+        let n = Vec3::new(0., 1., 0.);
+
+        let vec = vec![v, n];
+        let s: Vec3 = vec.into_iter().sum();
+        assert_eq!(s, Vec3::new(1., 0., 0.));
     }
 }

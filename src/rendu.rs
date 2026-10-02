@@ -2,11 +2,12 @@ use crate::{couleur::*, objet::*, ray::*, scene::*, vec3::*};
 
 const AMBIANTE: f64 = 0.1;
 const PROFONDEUR_MAX: u32 = 50;
+const N: u32 = 4;
 
-pub fn rayon_camera(x: usize, y: usize, largeur: usize, hauteur: usize) -> Rayon {
+pub fn rayon_camera(px: f64, py: f64, largeur: usize, hauteur: usize) -> Rayon {
     let ratio = largeur as f64 / hauteur as f64;
-    let u = ratio * (2.0 * (x as f64 + 0.5) / largeur as f64 - 1.0);
-    let v = 1.0 - 2.0 * (y as f64 + 0.5) / hauteur as f64;
+    let u = ratio * (2.0 * (px) / largeur as f64 - 1.0);
+    let v = 1.0 - 2.0 * (py) / hauteur as f64;
     Rayon {
         origine: ORIGINE,
         dir: Vec3::new(u, v, -1.0).normalized(),
@@ -38,8 +39,21 @@ fn dans_l_ombre(scene: &Scene, p: Vec3) -> bool {
 }
 
 pub fn couleur_pixel(x: usize, y: usize, largeur: usize, hauteur: usize, scene: &Scene) -> Couleur {
-    let r = rayon_camera(x, y, largeur, hauteur);
-    couleur_rayon(scene, r, PROFONDEUR_MAX)
+    let n = N as f64;
+    let somme: Couleur = (0..N * N)
+        .map(|k| {
+            let (i, j) = (k % N, k / N);
+            let px = x as f64 + (i as f64 + 0.5) / n;
+            let py = y as f64 + (j as f64 + 0.5) / n;
+            couleur_rayon(
+                scene,
+                rayon_camera(px, py, largeur, hauteur),
+                PROFONDEUR_MAX,
+            )
+        })
+        .sum();
+
+    somme * (1. / (n * n))
 }
 
 pub fn couleur_rayon(scene: &Scene, r: Rayon, profondeur: u32) -> Couleur {
