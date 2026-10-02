@@ -4,6 +4,7 @@ use std::path::Path;
 
 mod couleur;
 mod forme;
+mod objet;
 mod ray;
 mod vec3;
 
