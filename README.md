@@ -8,6 +8,7 @@ Scène `vitrine` en 1920x1080 : 8 objets, réflexions, anti-aliasing 4x4.
 ## Sommaire
 
 - [Ce que fait le programme](#ce-que-fait-le-programme)
+- [Les maths en jeu](#les-maths-en-jeu)
 - [Lancer le programme](#lancer-le-programme)
 - [Architecture](#architecture)
 - [Choix de conception](#choix-de-conception)
@@ -19,12 +20,38 @@ Scène `vitrine` en 1920x1080 : 8 objets, réflexions, anti-aliasing 4x4.
 ## Ce que fait le programme
 
 - Formes : sphères, plans infinis.
-- Éclairage : une source ponctuelle, modèle diffus de Lambert : $`\max(0, \vec{n} \cdot \vec{l})`$ et lumière ambiante.
+- Éclairage : une source ponctuelle, modèle diffus de Lambert et lumière ambiante.
 - Ombres portées : ombres dures via un rayon d'ombre vers la lumière.
-- Réflexions récursives : coefficient de 0 (mat) à 1 (miroir), direction réfléchie $`\vec{r} = \vec{d} - 2(\vec{d} \cdot \vec{n}) \vec{n}`$, reflet teinté par la couleur de l'objet, profondeur maximale de 5 rebonds.
+- Réflexions récursives : coefficient de 0 (mat) à 1 (miroir), reflet teinté par la couleur de l'objet, profondeur maximale de 5 rebonds.
 - Anti-aliasing : suréchantillonnage 4x4.
 - Couleur & sortie : correction gamma (γ = 2), écriture directe au format binaire PPM (P6).
 - Parallélisme : distribution des calculs de pixels avec `rayon`.
+
+## Les maths en jeu
+
+Un rayon part de l'origine O dans la direction unitaire d :
+
+```math
+P(t) = O + t\,\vec{d}, \qquad t > 0
+```
+
+Intersection avec une sphère de centre C et de rayon R (avec oc = O − C) : une équation du second degré en t, dont on garde la plus petite racine positive.
+
+```math
+t^2 + 2\,(\vec{d} \cdot \vec{oc})\,t + \lVert \vec{oc} \rVert^2 - R^2 = 0
+```
+
+Éclairage diffus de Lambert, avec n la normale et l la direction vers la lumière :
+
+```math
+E = a + (1 - a)\,\max(0,\ \vec{n} \cdot \vec{l}), \qquad a = 0{,}1 \text{ (ambiante)}
+```
+
+Direction d'un rayon réfléchi :
+
+```math
+\vec{r} = \vec{d} - 2\,(\vec{d} \cdot \vec{n})\,\vec{n}
+```
 
 ## Lancer le programme
 
@@ -51,7 +78,7 @@ ffmpeg -i image.ppm docs/rendu.png
 | Module | Rôle |
 |---|---|
 | `vec3` | Vecteur 3D, opérateurs (`+`, `-`, `*`, `neg`, `+=`), `dot`, `normalized`, `reflechi`, `Sum` |
-| `ray` | Rayon : origine, direction, calcul du point $`P(t) = O + t \vec{d}`$ |
+| `ray` | Rayon : origine, direction, point à la distance t |
 | `forme` | `enum Forme { Sphere, Plan }` : équation d'intersection et normale |
 | `objet` | `Objet { forme, couleur, reflexion }`, recherche de l'obstacle le plus proche (`plus_proche`) |
 | `couleur` | Alias `Couleur = Vec3`, constantes, conversion en octets `[u8; 3]` avec gamma |
