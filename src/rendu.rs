@@ -21,14 +21,33 @@ fn eclairement(n: Vec3, l: Vec3) -> f64 {
     AMBIANTE + (1. - AMBIANTE) * n.dot(l).max(0.)
 }
 
+fn dans_l_ombre(scene: &Scene, p: Vec3) -> bool {
+    let vers_lumiere = scene.lumiere.position - p;
+    let distance = vers_lumiere.length();
+
+    let r = Rayon {
+        origine: p,
+        dir: vers_lumiere.normalized(),
+    };
+
+    scene.objets.iter().any(|o| match o.forme.intersecte(r) {
+        Some(t) => t <= distance,
+        None => false,
+    })
+}
+
 pub fn couleur_pixel(x: usize, y: usize, largeur: usize, hauteur: usize, scene: &Scene) -> Couleur {
     let r = rayon_camera(x, y, largeur, hauteur);
     match plus_proche(&scene.objets, r) {
         Some((t, objet)) => {
             let p = r.at(t);
-            let n = objet.forme.normale_en(p);
-            let l = (scene.lumiere.position - p).normalized();
-            objet.couleur * eclairement(n, l)
+            if dans_l_ombre(scene, p) {
+                objet.couleur * AMBIANTE
+            } else {
+                let n = objet.forme.normale_en(p);
+                let l = (scene.lumiere.position - p).normalized();
+                objet.couleur * eclairement(n, l)
+            }
         }
         None => ciel(r.dir),
     }
@@ -43,6 +62,9 @@ pub fn rendu(largeur: usize, hauteur: usize, scene: &Scene) -> Vec<Couleur> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::*;
+    use crate::forme::Forme;
+    use crate::lumiere::Lumiere;
 
     #[test]
     fn milieu_touche_la_sphere_verte() {
@@ -58,5 +80,35 @@ mod tests {
         let n = Vec3::new(0., 1., 0.);
         assert!((eclairement(n, n) - 1.0).abs() < 1e-9);
         assert_eq!(eclairement(n, -n), AMBIANTE);
+    }
+
+    #[test]
+    fn ombre_sous_la_sphere() {
+        let scene = Scene {
+            objets: vec![
+                Objet {
+                    forme: Forme::Sphere {
+                        centre: Vec3::new(0.0, 0.0, -3.0),
+                        rayon: 0.5,
+                    },
+                    couleur: VERT,
+                },
+                Objet {
+                    forme: Forme::Plan {
+                        point: Vec3::new(0.0, -1.0, 0.0),
+                        normale: Vec3::new(0.0, 1.0, 0.0),
+                    },
+                    couleur: BLANC,
+                },
+            ],
+            lumiere: Lumiere {
+                position: Vec3::new(0.0, 5.0, -3.0),
+            },
+        };
+
+        // sous la sphère : la lumière est juste au-dessus, la sphère la bloque
+        assert!(dans_l_ombre(&scene, Vec3::new(0.0, -1.0, -3.0)));
+        // loin sur le côté : rien entre le point et la lumière
+        assert!(!dans_l_ombre(&scene, Vec3::new(5.0, -1.0, -3.0)));
     }
 }
