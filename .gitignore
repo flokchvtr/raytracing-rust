@@ -1,5 +1,6 @@
-/target
+target/
 *.ppm
 *.png
+!docs/*.png
 flamegraph.svg
 perf.data*
