@@ -6,6 +6,7 @@ use crate::ray::Rayon;
 pub struct Objet {
     pub forme: Forme,
     pub couleur: Couleur,
+    pub reflexion: f64,
 }
 
 pub fn plus_proche(objets: &[Objet], r: Rayon) -> Option<(f64, &Objet)> {

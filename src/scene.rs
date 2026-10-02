@@ -21,6 +21,7 @@ impl Scene {
                 rayon: 0.5,
             },
             couleur: ROUGE,
+            reflexion: 0.0,
         };
 
         let sphere_verte = Objet {
@@ -29,6 +30,7 @@ impl Scene {
                 rayon: 0.5,
             },
             couleur: VERT,
+            reflexion: 0.2,
         };
 
         let sphere_bleu = Objet {
@@ -37,6 +39,7 @@ impl Scene {
                 rayon: 0.5,
             },
             couleur: BLEU,
+            reflexion: 0.,
         };
 
         let sol = Objet {
@@ -45,6 +48,7 @@ impl Scene {
                 normale: Vec3::new(0.0, 1.0, 0.0),
             },
             couleur: Couleur::new(0.5, 0.5, 0.5),
+            reflexion: 0.2,
         };
 
         Scene {

@@ -30,6 +30,10 @@ impl Vec3 {
         let l = 1. / self.length();
         self * l
     }
+
+    pub fn reflechi(self, n: Vec3) -> Vec3 {
+        self - 2. * (self.dot(n)) * n
+    }
 }
 
 impl Add for Vec3 {
@@ -83,5 +87,20 @@ impl Mul<Vec3> for f64 {
 impl AddAssign for Vec3 {
     fn add_assign(&mut self, rhs: Self) {
         *self = *self + rhs;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reflection() {
+        let v = Vec3::new(1., -1., 0.);
+        let n = Vec3::new(0., 1., 0.);
+        let res = Vec3::new(1., 1., 0.);
+        assert_eq!(v.reflechi(n), res);
+        let bas = Vec3::new(0., -1., 0.);
+        assert_eq!(bas.reflechi(n), n);
     }
 }

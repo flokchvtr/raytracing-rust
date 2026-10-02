@@ -1,6 +1,7 @@
 use crate::{couleur::*, objet::*, ray::*, scene::*, vec3::*};
 
 const AMBIANTE: f64 = 0.1;
+const PROFONDEUR_MAX: u32 = 50;
 
 pub fn rayon_camera(x: usize, y: usize, largeur: usize, hauteur: usize) -> Rayon {
     let ratio = largeur as f64 / hauteur as f64;
@@ -38,15 +39,29 @@ fn dans_l_ombre(scene: &Scene, p: Vec3) -> bool {
 
 pub fn couleur_pixel(x: usize, y: usize, largeur: usize, hauteur: usize, scene: &Scene) -> Couleur {
     let r = rayon_camera(x, y, largeur, hauteur);
+    couleur_rayon(scene, r, PROFONDEUR_MAX)
+}
+
+pub fn couleur_rayon(scene: &Scene, r: Rayon, profondeur: u32) -> Couleur {
     match plus_proche(&scene.objets, r) {
         Some((t, objet)) => {
             let p = r.at(t);
-            if dans_l_ombre(scene, p) {
+            let n = objet.forme.normale_en(p);
+            let local = if dans_l_ombre(scene, p) {
                 objet.couleur * AMBIANTE
             } else {
-                let n = objet.forme.normale_en(p);
                 let l = (scene.lumiere.position - p).normalized();
                 objet.couleur * eclairement(n, l)
+            };
+            if objet.reflexion == 0.0 || profondeur == 0 {
+                local
+            } else {
+                let r = Rayon {
+                    origine: p,
+                    dir: r.dir.reflechi(n),
+                };
+                let reflet = couleur_rayon(scene, r, profondeur - 1);
+                (1. - objet.reflexion) * local + objet.reflexion * (objet.couleur * reflet)
             }
         }
         None => ciel(r.dir),
@@ -61,7 +76,6 @@ pub fn rendu(largeur: usize, hauteur: usize, scene: &Scene) -> Vec<Couleur> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::*;
     use crate::forme::Forme;
     use crate::lumiere::Lumiere;
@@ -92,6 +106,7 @@ mod tests {
                         rayon: 0.5,
                     },
                     couleur: VERT,
+                    reflexion: 1.,
                 },
                 Objet {
                     forme: Forme::Plan {
@@ -99,6 +114,7 @@ mod tests {
                         normale: Vec3::new(0.0, 1.0, 0.0),
                     },
                     couleur: BLANC,
+                    reflexion: 1.,
                 },
             ],
             lumiere: Lumiere {
@@ -106,9 +122,7 @@ mod tests {
             },
         };
 
-        // sous la sphère : la lumière est juste au-dessus, la sphère la bloque
         assert!(dans_l_ombre(&scene, Vec3::new(0.0, -1.0, -3.0)));
-        // loin sur le côté : rien entre le point et la lumière
         assert!(!dans_l_ombre(&scene, Vec3::new(5.0, -1.0, -3.0)));
     }
 }
