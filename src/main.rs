@@ -4,7 +4,7 @@ use crate::scene::Scene;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 
-use crate::couleur::Couleur;
+use crate::couleur::{Couleur, convert_bytes};
 mod couleur;
 mod forme;
 mod lumiere;
@@ -34,7 +34,7 @@ fn main() -> io::Result<()> {
 }
 
 fn ecrire_entete(f: &mut impl Write, largeur: usize, hauteur: usize) -> io::Result<()> {
-    writeln!(f, "P3")?;
+    writeln!(f, "P6")?;
     writeln!(f, "{} {}", largeur, hauteur)?;
     writeln!(f, "255")?;
     Ok(())
@@ -48,8 +48,7 @@ fn ecrire_ppm(
 ) -> io::Result<()> {
     ecrire_entete(f, largeur, hauteur)?;
     for &c in pixels {
-        let [r, g, b] = couleur::convert_bytes(c);
-        writeln!(f, "{r} {g} {b}")?;
+        f.write_all(&convert_bytes(c))?;
     }
     Ok(())
 }
