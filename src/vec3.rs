@@ -1,5 +1,7 @@
 use std::ops::{Add, AddAssign, Mul, Neg, Sub};
 
+pub const ORIGINE: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub struct Vec3 {
     pub x: f64,
