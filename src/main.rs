@@ -1,20 +1,23 @@
-use crate::rendu::{rendu, scene};
+use crate::rendu::rendu;
+use crate::scene::Scene;
+
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 
 use crate::couleur::Couleur;
 mod couleur;
 mod forme;
+mod lumiere;
 mod objet;
 mod ray;
 mod rendu;
+mod scene;
 mod vec3;
-
 fn main() -> io::Result<()> {
     let hauteur = 225;
     let largeur = 400;
 
-    let scene = scene();
+    let scene = Scene::demo();
 
     let debut = std::time::Instant::now();
     let pixels: Vec<Couleur> = rendu(largeur, hauteur, &scene);

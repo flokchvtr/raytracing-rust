@@ -1,4 +1,6 @@
-use crate::{couleur::*, forme::*, objet::*, ray::*, vec3::*};
+use crate::{couleur::*, objet::*, ray::*, scene::*, vec3::*};
+
+const AMBIANTE: f64 = 0.1;
 
 pub fn rayon_camera(x: usize, y: usize, largeur: usize, hauteur: usize) -> Rayon {
     let ratio = largeur as f64 / hauteur as f64;
@@ -15,56 +17,24 @@ pub fn ciel(dir: Vec3) -> Couleur {
     (1. - a) * BLANC + a * BLEU_C
 }
 
-pub fn couleur_pixel(
-    x: usize,
-    y: usize,
-    largeur: usize,
-    hauteur: usize,
-    scene: &[Objet],
-) -> Couleur {
+fn eclairement(n: Vec3, l: Vec3) -> f64 {
+    AMBIANTE + (1. - AMBIANTE) * n.dot(l).max(0.)
+}
+
+pub fn couleur_pixel(x: usize, y: usize, largeur: usize, hauteur: usize, scene: &Scene) -> Couleur {
     let r = rayon_camera(x, y, largeur, hauteur);
-    match plus_proche(scene, r) {
-        Some((_, objet)) => objet.couleur,
+    match plus_proche(&scene.objets, r) {
+        Some((t, objet)) => {
+            let p = r.at(t);
+            let n = objet.forme.normale_en(p);
+            let l = (scene.lumiere.position - p).normalized();
+            objet.couleur * eclairement(n, l)
+        }
         None => ciel(r.dir),
     }
 }
 
-pub fn scene() -> Vec<Objet> {
-    let sphere_rouge = Objet {
-        forme: Forme::Sphere {
-            centre: Vec3::new(-1.2, 0.0, -3.0),
-            rayon: 0.5,
-        },
-        couleur: ROUGE,
-    };
-
-    let sphere_verte = Objet {
-        forme: Forme::Sphere {
-            centre: Vec3::new(0.0, 0.0, -3.0),
-            rayon: 0.5,
-        },
-        couleur: VERT,
-    };
-
-    let sphere_bleu = Objet {
-        forme: Forme::Sphere {
-            centre: Vec3::new(1.2, 0.0, -3.0),
-            rayon: 0.5,
-        },
-        couleur: BLEU,
-    };
-
-    let sol = Objet {
-        forme: Forme::Plan {
-            point: Vec3::new(0.0, -1.0, 0.0),
-            normale: Vec3::new(0.0, 1.0, 0.0),
-        },
-        couleur: Couleur::new(0.5, 0.5, 0.5),
-    };
-    vec![sol, sphere_bleu, sphere_rouge, sphere_verte]
-}
-
-pub fn rendu(largeur: usize, hauteur: usize, scene: &[Objet]) -> Vec<Couleur> {
+pub fn rendu(largeur: usize, hauteur: usize, scene: &Scene) -> Vec<Couleur> {
     (0..largeur * hauteur)
         .map(|i| couleur_pixel(i % largeur, i / largeur, largeur, hauteur, scene))
         .collect()
@@ -75,10 +45,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn milieu_est_vert() {
-        let scene = scene();
+    fn milieu_touche_la_sphere_verte() {
+        let scene = Scene::demo();
         let (largeur, hauteur) = (400, 225);
         let c = couleur_pixel(largeur / 2, hauteur / 2, largeur, hauteur, &scene);
-        assert_eq!(c, VERT);
+        assert!(c.x < c.y);
+        assert!(c.z < c.y);
+    }
+
+    #[test]
+    fn eclairement_test() {
+        let n = Vec3::new(0., 1., 0.);
+        assert!((eclairement(n, n) - 1.0).abs() < 1e-9);
+        assert_eq!(eclairement(n, -n), AMBIANTE);
     }
 }
