@@ -10,13 +10,6 @@ pub enum Forme {
 }
 
 impl Forme {
-    pub fn nom(&self) -> &'static str {
-        match self {
-            Self::Sphere { .. } => "sphère",
-            Self::Plan { .. } => "plan",
-        }
-    }
-
     pub fn normale_en(&self, p: Vec3) -> Vec3 {
         match self {
             Self::Sphere { centre, rayon } => (p - *centre) * (1. / rayon),

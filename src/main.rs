@@ -1,13 +1,8 @@
+use crate::rendu::{rendu, scene};
 use std::fs::File;
-use std::io::{self, BufRead, BufReader, BufWriter, Write};
-use std::path::Path;
+use std::io::{self, BufWriter, Write};
 
-use crate::couleur::{BLEU, Couleur, ROUGE, VERT}; // + ta couleur de sol
-use crate::forme::Forme;
-use crate::objet::Objet;
-use crate::rendu::couleur_pixel;
-use crate::vec3::Vec3;
-
+use crate::couleur::Couleur;
 mod couleur;
 mod forme;
 mod objet;
@@ -19,47 +14,19 @@ fn main() -> io::Result<()> {
     let hauteur = 225;
     let largeur = 400;
 
-    let sphere_rouge = Objet {
-        forme: Forme::Sphere {
-            centre: Vec3::new(-1.2, 0.0, -3.0),
-            rayon: 0.5,
-        },
-        couleur: ROUGE,
-    };
+    let scene = scene();
 
-    let sphere_verte = Objet {
-        forme: Forme::Sphere {
-            centre: Vec3::new(0.0, 0.0, -3.0),
-            rayon: 0.5,
-        },
-        couleur: VERT,
-    };
-
-    let sphere_bleu = Objet {
-        forme: Forme::Sphere {
-            centre: Vec3::new(1.2, 0.0, -3.0),
-            rayon: 0.5,
-        },
-        couleur: BLEU,
-    };
-
-    let sol = Objet {
-        forme: Forme::Plan {
-            point: Vec3::new(0.0, -1.0, 0.0),
-            normale: Vec3::new(0.0, 1.0, 0.0),
-        },
-        couleur: Couleur::new(0.5, 0.5, 0.5),
-    };
-
-    let objets = vec![sol, sphere_bleu, sphere_rouge, sphere_verte];
-
-    let pixels: Vec<Couleur> = (0..largeur * hauteur)
-        .map(|i| couleur_pixel(i % largeur, i / largeur, largeur, hauteur, &objets))
-        .collect();
+    let debut = std::time::Instant::now();
+    let pixels: Vec<Couleur> = rendu(largeur, hauteur, &scene);
+    eprintln!("calcul : {:?}", debut.elapsed());
 
     let mut f = BufWriter::new(File::create("image.ppm")?);
+
+    let debut = std::time::Instant::now();
     ecrire_ppm(&mut f, largeur, hauteur, &pixels)?;
     f.flush()?;
+    eprintln!("écriture : {:?}", debut.elapsed());
+
     Ok(())
 }
 

@@ -15,3 +15,15 @@ fn composante(x: f64) -> u8 {
 pub fn convert_bytes(c: Couleur) -> [u8; 3] {
     [composante(c.x), composante(c.y), composante(c.z)]
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn conversion_bornee() {
+        assert_eq!(convert_bytes(Couleur::new(0.0, 0.0, 0.0)), [0, 0, 0]);
+        assert_eq!(convert_bytes(Couleur::new(1.0, 1.0, 1.0)), [255, 255, 255]);
+        assert_eq!(convert_bytes(Couleur::new(1.5, -0.2, 0.5)), [255, 0, 127]);
+    }
+}
