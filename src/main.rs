@@ -14,10 +14,10 @@ mod rendu;
 mod scene;
 mod vec3;
 fn main() -> io::Result<()> {
-    let hauteur = 225;
-    let largeur = 400;
+    let hauteur = 1080;
+    let largeur = 1920;
 
-    let scene = Scene::demo();
+    let scene = Scene::vitrine();
 
     let debut = std::time::Instant::now();
     let pixels: Vec<Couleur> = rendu(largeur, hauteur, &scene);
