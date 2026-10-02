@@ -1,4 +1,5 @@
 use crate::{couleur::*, objet::*, ray::*, scene::*, vec3::*};
+use rayon::prelude::*;
 
 const AMBIANTE: f64 = 0.1;
 const PROFONDEUR_MAX: u32 = 50;
@@ -84,6 +85,7 @@ pub fn couleur_rayon(scene: &Scene, r: Rayon, profondeur: u32) -> Couleur {
 
 pub fn rendu(largeur: usize, hauteur: usize, scene: &Scene) -> Vec<Couleur> {
     (0..largeur * hauteur)
+        .into_par_iter()
         .map(|i| couleur_pixel(i % largeur, i / largeur, largeur, hauteur, scene))
         .collect()
 }
