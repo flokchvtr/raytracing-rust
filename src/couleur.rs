@@ -2,12 +2,14 @@ use crate::vec3::Vec3;
 
 pub type Couleur = Vec3;
 
+#[cfg(test)]
 pub const ROUGE: Couleur = Couleur::new(1.0, 0.0, 0.0);
+#[cfg(test)]
 pub const VERT: Couleur = Couleur::new(0.0, 1.0, 0.0);
+#[cfg(test)]
 pub const BLEU: Couleur = Couleur::new(0.0, 0.0, 1.0);
 pub const BLEU_C: Couleur = Couleur::new(0.5, 0.7, 1.0);
 pub const BLANC: Couleur = Couleur::new(1.0, 1.0, 1.0);
-pub const NOIR: Couleur = Couleur::new(0.0, 0.0, 0.0);
 
 fn composante(x: f64) -> u8 {
     (x.clamp(0.0, 1.0).sqrt() * 255.999) as u8

@@ -119,7 +119,7 @@ Temps propre de chaque fonction, mesuré avec `perf` et un flamegraph (après in
 |---|---|---|
 | `couleur_rayon` | 36 % | ombres, éclairage, réflexion |
 | `plus_proche` | 32 % | tests d'intersection rayon/objet |
-| closure de `rendu` | 25 % | caméra, suréchantillonnage, 1ᵉʳ niveau de `couleur_rayon` |
+| closure de `rendu` | 25 % | caméra, suréchantillonnage, 1er niveau de `couleur_rayon` |
 | noyau | ~2 % | allocations et mémoire |
 
 En cumulé :
